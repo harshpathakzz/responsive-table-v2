@@ -1,7 +1,11 @@
 import { ResponsiveTable } from './components/ResponsiveTable';
 import { createColumnHelper } from '@tanstack/react-table';
-import ResizableTableContainer from './components/Mytable';
-import { MyTable } from './components/Mytable';
+import ResizableTableContainer from './components/ResizableTableContainer';
+import MyTable from './components/Mytable';
+import ColumnSwitchTable from './components/ResponsiveSwitchTable';
+import ResponsiveOneColumnSwitchable from './components/ResponsiveOneColumnSwitchable';
+import ColumSwitchAdvance from './components/ColumSwitchAdvance';
+
 
 type Person = {
   id: string;
@@ -92,9 +96,7 @@ const responsiveConfig = {
 
 function App() {
 
-  const listenToCallbaxck = () => {
 
-  }
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Responsive Table Example Wrapper</h1>
@@ -102,14 +104,20 @@ function App() {
         data={data}
         columns={columns}
         responsiveConfig={responsiveConfig}
-        fireCaLLback={listenToCallbaxck}
       />
       <h1 className="text-2xl font-bold mb-4">Responsive Table Example Resizable Direct usage</h1>
      
       <ResizableTableContainer />
       <h1 className="text-2xl font-bold mb-4">Responsive Table Example Direct usage</h1>
       <MyTable />
+      <h1 className="text-2xl font-bold mb-4">Column switch</h1>
+      <ColumnSwitchTable/>
+      <h1 className="text-2xl font-bold mb-4">Responsive Table X Column switch</h1>
+      <ResponsiveOneColumnSwitchable/>
+      <h1 className="text-2xl font-bold mb-4">Responsive Table X Column switch X Advance</h1>
+      <ColumSwitchAdvance/>
       </div>
+
   );
 }
 
