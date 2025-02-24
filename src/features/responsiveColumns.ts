@@ -1,4 +1,3 @@
-// features/responsiveColumns.ts
 import { TableFeature, Table, RowData } from '@tanstack/react-table';
 
 export type BreakpointConfig = {
@@ -26,6 +25,7 @@ export interface ResponsiveColumnsInstance {
   setContainerWidth: (width: number) => void;
   getVisibleColumns: () => string[];
   getResponsiveConfig: () => ResponsiveConfig | undefined;
+  getContainerWidth: () => number;
   initResizeObserver: (element: HTMLElement) => () => void;
 }
 
@@ -84,12 +84,12 @@ export const ResponsiveColumnsFeature: TableFeature = {
     
     table.getResponsiveConfig = () => table.options.responsiveConfig;
 
+    table.getContainerWidth = () => table.getState().containerWidth;
+
     table.initResizeObserver = (element) => {
-      // Initial width calculation
       const width = element.getBoundingClientRect().width;
       table.setContainerWidth(width);
 
-      // Setup ResizeObserver
       const resizeObserver = new ResizeObserver((entries) => {
         const width = entries[0]?.contentRect.width;
         if (width) {
