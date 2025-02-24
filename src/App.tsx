@@ -6,6 +6,7 @@ import ColumnSwitchTable from './components/ResponsiveSwitchTable';
 import ResponsiveOneColumnSwitchable from './components/ResponsiveOneColumnSwitchable';
 import ColumSwitchAdvance from './components/ColumSwitchAdvance';
 import ResStyle from './components/ResStyle';
+import FeatCol from './components/FeatCol';
 
 
 type Person = {
@@ -135,6 +136,24 @@ function App() {
                 <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-gray-200 hover:bg-gray-300" />
               </div>
             </div>
+            <h1 className="text-2xl font-bold mb-4">Colmn Switch Feat</h1>
+            <div className="p-4">
+                    <div 
+                      className="relative overflow-hidden border border-gray-200 rounded-lg"
+                      style={{
+                        resize: 'both',
+                        overflow: 'auto',
+                        minHeight: '200px',
+                        minWidth: '300px',
+                        maxHeight: '800px',
+                        maxWidth: '100%',
+                        backgroundColor: 'white',
+                      }}
+                    >
+                      <FeatCol />
+                      <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-gray-200 hover:bg-gray-300" />
+                    </div>
+                  </div>
       </div>
 
   );
