@@ -6,7 +6,6 @@ import {
   ColumnDef,
 } from '@tanstack/react-table';
 import { ResponsiveColumnsFeature } from '../features/responsiveColumns';
-import { ColumnSwitcherFeature } from '../features/columnSwitcher';
 
 interface Person {
   id: string;
@@ -59,7 +58,7 @@ const data: Person[] = [
     age: 30,
     email: 'john@example.com',
     phone: '123-456-7890',
-    address: '123 Main St'
+    address: '123 Main St',
   },
   {
     id: '2',
@@ -68,7 +67,7 @@ const data: Person[] = [
     age: 25,
     email: 'jane@example.com',
     phone: '098-765-4321',
-    address: '456 Oak Ave'
+    address: '456 Oak Ave',
   },
   {
     id: '3',
@@ -77,7 +76,7 @@ const data: Person[] = [
     age: 35,
     email: 'bob@example.com',
     phone: '555-555-5555',
-    address: '789 Pine Rd'
+    address: '789 Pine Rd',
   },
   {
     id: '4',
@@ -86,7 +85,7 @@ const data: Person[] = [
     age: 28,
     email: 'alice@example.com',
     phone: '111-222-3333',
-    address: '321 Elm St'
+    address: '321 Elm St',
   },
   {
     id: '5',
@@ -95,11 +94,11 @@ const data: Person[] = [
     age: 42,
     email: 'charlie@example.com',
     phone: '444-444-4444',
-    address: '654 Maple Dr'
-  }
+    address: '654 Maple Dr',
+  },
 ];
 
-export function FeatCol() {
+export function MyTable() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const responsiveConfig = {
@@ -124,25 +123,21 @@ export function FeatCol() {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    // Enable both features by including them in the _features array.
-    _features: [ResponsiveColumnsFeature, ColumnSwitcherFeature],
+    _features: [ResponsiveColumnsFeature],
     enableResponsiveColumns: true,
+    lastColumnSwitchable: true,
     responsiveConfig,
-    // Enable the column switcher feature.
-    enableColumnSwitcher: true,
   });
 
   useEffect(() => {
     if (!containerRef.current) return;
-    
+
     const cleanup = table.initResizeObserver(containerRef.current);
     return cleanup;
   }, [table]);
 
+  // Get visible columns from state (order will be used to sort headers and cells)
   const visibleColumns = table.getVisibleColumns();
-
-  // Debug: log the table state
-  console.log(table.getState());
 
   return (
     <div ref={containerRef} className="overflow-x-auto">
@@ -152,18 +147,31 @@ export function FeatCol() {
             <tr key={headerGroup.id}>
               {headerGroup.headers
                 .filter(header => visibleColumns.includes(header.column.id))
-                .map(header => (
-                  <th
-                    key={header.id}
-                    className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    onClick={() => table.switchColumn && table.switchColumn(header.column.id)}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
+                // Ensure headers are sorted according to visibleColumns order
+                .sort(
+                  (a, b) =>
+                    visibleColumns.indexOf(a.column.id) -
+                    visibleColumns.indexOf(b.column.id)
+                )
+                .map((header, index, arr) => {
+                  const isLast =
+                    index === arr.length - 1 &&
+                    table.options.lastColumnSwitchable;
+                  return (
+                    <th
+                      key={header.id}
+                      onClick={isLast ? table.toggleLastColumn : undefined}
+                      className={`px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                        isLast ? 'cursor-pointer' : ''
+                      }`}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </th>
+                  );
+                })}
             </tr>
           ))}
         </thead>
@@ -172,6 +180,12 @@ export function FeatCol() {
             <tr key={row.id}>
               {row.getVisibleCells()
                 .filter(cell => visibleColumns.includes(cell.column.id))
+                // Sort cells based on visibleColumns order
+                .sort(
+                  (a, b) =>
+                    visibleColumns.indexOf(a.column.id) -
+                    visibleColumns.indexOf(b.column.id)
+                )
                 .map(cell => (
                   <td
                     key={cell.id}
@@ -191,4 +205,4 @@ export function FeatCol() {
   );
 }
 
-export default FeatCol;
+export default MyTable;
