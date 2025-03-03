@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -18,36 +18,12 @@ interface Person {
 }
 
 const columns: ColumnDef<Person>[] = [
-  {
-    id: 'firstName',
-    header: 'First Name',
-    accessorKey: 'firstName',
-  },
-  {
-    id: 'lastName',
-    header: 'Last Name',
-    accessorKey: 'lastName',
-  },
-  {
-    id: 'age',
-    header: 'Age',
-    accessorKey: 'age',
-  },
-  {
-    id: 'email',
-    header: 'Email',
-    accessorKey: 'email',
-  },
-  {
-    id: 'phone',
-    header: 'Phone',
-    accessorKey: 'phone',
-  },
-  {
-    id: 'address',
-    header: 'Address',
-    accessorKey: 'address',
-  },
+  { id: 'firstName', header: 'First Name', accessorKey: 'firstName' },
+  { id: 'lastName', header: 'Last Name', accessorKey: 'lastName' },
+  { id: 'age', header: 'Age', accessorKey: 'age' },
+  { id: 'email', header: 'Email', accessorKey: 'email' },
+  { id: 'phone', header: 'Phone', accessorKey: 'phone' },
+  { id: 'address', header: 'Address', accessorKey: 'address' },
 ];
 
 const data: Person[] = [
@@ -98,8 +74,20 @@ const data: Person[] = [
   },
 ];
 
+// Define fixed widths for each column by its id.
+const columnWidths: Record<string, string> = {
+  firstName: '150px',
+  lastName: '150px',
+  age: '100px',
+  email: '200px',
+  phone: '150px',
+  address: '250px',
+};
+
 export function MyTable() {
   const containerRef = useRef<HTMLDivElement>(null);
+  // We store the default visible columns (i.e. before any swap) so we know the intended widths.
+  const [defaultVisibleColumns, setDefaultVisibleColumns] = useState<string[]>([]);
 
   const responsiveConfig = {
     breakpoints: [
@@ -132,22 +120,46 @@ export function MyTable() {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Compute the default visible columns using the responsive config.
+    const width = containerRef.current.getBoundingClientRect().width;
+    let defaultCols: string[] = [];
+    {
+      const matchingBreakpoint = [...responsiveConfig.breakpoints]
+        .sort((a, b) => b.minWidth - a.minWidth)
+        .find((bp) => width >= bp.minWidth);
+      defaultCols = matchingBreakpoint?.columns || responsiveConfig.defaultColumns || [];
+    }
+    setDefaultVisibleColumns(defaultCols);
+
     const cleanup = table.initResizeObserver(containerRef.current);
     return cleanup;
   }, [table]);
 
-  // Get visible columns from state (order will be used to sort headers and cells)
   const visibleColumns = table.getVisibleColumns();
 
   return (
     <div ref={containerRef} className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
+      {/* 
+        Use table-fixed to lock column layout.
+        Render a colgroup that assigns fixed widths to each column slot.
+        For the last slot, use the width of the default column (so swapped columns take on that slot's width).
+      */}
+      <table className="min-w-full table-fixed divide-y divide-gray-200 transition-all duration-300">
+        <colgroup>
+          {visibleColumns.map((colId, idx) => {
+            // For the last column slot, use the default column id (if available) to determine width.
+            const defaultColId =
+              idx === visibleColumns.length - 1 && defaultVisibleColumns.length > 0
+                ? defaultVisibleColumns[defaultVisibleColumns.length - 1]
+                : colId;
+            return <col key={idx} style={{ width: columnWidths[defaultColId] }} />;
+          })}
+        </colgroup>
         <thead>
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id}>
               {headerGroup.headers
                 .filter(header => visibleColumns.includes(header.column.id))
-                // Ensure headers are sorted according to visibleColumns order
                 .sort(
                   (a, b) =>
                     visibleColumns.indexOf(a.column.id) -
@@ -161,7 +173,7 @@ export function MyTable() {
                     <th
                       key={header.id}
                       onClick={isLast ? table.toggleLastColumn : undefined}
-                      className={`px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      className={`px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider transition-all duration-300 ${
                         isLast ? 'cursor-pointer' : ''
                       }`}
                     >
@@ -180,7 +192,6 @@ export function MyTable() {
             <tr key={row.id}>
               {row.getVisibleCells()
                 .filter(cell => visibleColumns.includes(cell.column.id))
-                // Sort cells based on visibleColumns order
                 .sort(
                   (a, b) =>
                     visibleColumns.indexOf(a.column.id) -
@@ -189,7 +200,7 @@ export function MyTable() {
                 .map(cell => (
                   <td
                     key={cell.id}
-                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 transition-all duration-300"
                   >
                     {flexRender(
                       cell.column.columnDef.cell,

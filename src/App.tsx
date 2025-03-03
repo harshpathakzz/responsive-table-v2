@@ -3,8 +3,6 @@ import { createColumnHelper } from '@tanstack/react-table';
 import ResizableTableContainer from './components/ResizableTableContainer';
 import MyTable from './components/Mytable';
 import ColumnSwitchTable from './components/ResponsiveSwitchTable';
-import ResponsiveOneColumnSwitchable from './components/ResponsiveOneColumnSwitchable';
-import ColumSwitchAdvance from './components/ColumSwitchAdvance';
 import ResStyle from './components/ResStyle';
 import FeatCol from './components/FeatCol';
 
@@ -114,11 +112,6 @@ function App() {
       <MyTable />
       <h1 className="text-2xl font-bold mb-4">Column switch</h1>
       <ColumnSwitchTable/>
-      <h1 className="text-2xl font-bold mb-4">Responsive Table X Column switch</h1>
-      <ResponsiveOneColumnSwitchable/>
-      <h1 className="text-2xl font-bold mb-4">Responsive Table X Column switch X Advance</h1>
-      <ColumSwitchAdvance/>
-      <h1></h1>
       <div className="p-4">
               <div 
                 className="relative overflow-hidden border border-gray-200 rounded-lg"
