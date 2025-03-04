@@ -253,7 +253,6 @@ function MyTable() {
             </SortableContext>
           </tbody>
         </table>
-        <pre>{JSON.stringify(data, null, 2)}</pre>
       </div>
     </DndContext>
   );
