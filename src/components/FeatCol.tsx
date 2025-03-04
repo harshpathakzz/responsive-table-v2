@@ -5,7 +5,7 @@ import {
   flexRender,
   ColumnDef,
 } from '@tanstack/react-table';
-import { ResponsiveColumnsFeature } from '../features/responsiveColumns';
+import { ResponsiveColumnsFeature, ResponsiveConfig } from '../features/responsiveColumns';
 
 interface Person {
   id: string;
@@ -84,28 +84,26 @@ const columnWidths: Record<string, string> = {
   address: '250px',
 };
 
+const responsiveConfig: ResponsiveConfig = {
+  breakpoints: [
+    {
+      minWidth: 1200,
+      columns: ['firstName', 'lastName', 'age', 'email', 'phone', 'address'],
+    },
+    {
+      minWidth: 768,
+      columns: ['firstName', 'lastName', 'email', 'phone'],
+    },
+    {
+      minWidth: 0,
+      columns: ['firstName', 'lastName', 'email'],
+    },
+  ],
+  defaultColumns: ['firstName', 'lastName'],
+};
+
 export function MyTable() {
   const containerRef = useRef<HTMLDivElement>(null);
-  // We store the default visible columns (i.e. before any swap) so we know the intended widths.
-  const [defaultVisibleColumns, setDefaultVisibleColumns] = useState<string[]>([]);
-
-  const responsiveConfig = {
-    breakpoints: [
-      {
-        minWidth: 1200,
-        columns: ['firstName', 'lastName', 'age', 'email', 'phone', 'address'],
-      },
-      {
-        minWidth: 768,
-        columns: ['firstName', 'lastName', 'email', 'phone'],
-      },
-      {
-        minWidth: 0,
-        columns: ['firstName', 'lastName', 'email'],
-      },
-    ],
-    defaultColumns: ['firstName', 'lastName'],
-  };
 
   const table = useReactTable({
     data,
@@ -117,37 +115,27 @@ export function MyTable() {
     responsiveConfig,
   });
 
+  // Compute default visible columns using the table's method.
+  const [defaultVisibleColumns] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return table.getDefaultVisibleColumns(window.innerWidth);
+    }
+    return responsiveConfig.defaultColumns || [];
+  });
+
   useEffect(() => {
     if (!containerRef.current) return;
-
-    // Compute the default visible columns using the responsive config.
-    const width = containerRef.current.getBoundingClientRect().width;
-    let defaultCols: string[] = [];
-    {
-      const matchingBreakpoint = [...responsiveConfig.breakpoints]
-        .sort((a, b) => b.minWidth - a.minWidth)
-        .find((bp) => width >= bp.minWidth);
-      defaultCols = matchingBreakpoint?.columns || responsiveConfig.defaultColumns || [];
-    }
-    setDefaultVisibleColumns(defaultCols);
-
-    const cleanup = table.initResizeObserver(containerRef.current);
-    return cleanup;
+    return table.initResizeObserver(containerRef.current);
   }, [table]);
 
   const visibleColumns = table.getVisibleColumns();
 
   return (
     <div ref={containerRef} className="overflow-x-auto">
-      {/* 
-        Use table-fixed to lock column layout.
-        Render a colgroup that assigns fixed widths to each column slot.
-        For the last slot, use the width of the default column (so swapped columns take on that slot's width).
-      */}
       <table className="min-w-full table-fixed divide-y divide-gray-200 transition-all duration-300">
         <colgroup>
           {visibleColumns.map((colId, idx) => {
-            // For the last column slot, use the default column id (if available) to determine width.
+            // For the last column slot, use the default column id for consistency.
             const defaultColId =
               idx === visibleColumns.length - 1 && defaultVisibleColumns.length > 0
                 ? defaultVisibleColumns[defaultVisibleColumns.length - 1]
@@ -156,10 +144,10 @@ export function MyTable() {
           })}
         </colgroup>
         <thead>
-          {table.getHeaderGroups().map(headerGroup => (
+          {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers
-                .filter(header => visibleColumns.includes(header.column.id))
+                .filter((header) => visibleColumns.includes(header.column.id))
                 .sort(
                   (a, b) =>
                     visibleColumns.indexOf(a.column.id) -
@@ -167,8 +155,7 @@ export function MyTable() {
                 )
                 .map((header, index, arr) => {
                   const isLast =
-                    index === arr.length - 1 &&
-                    table.options.lastColumnSwitchable;
+                    index === arr.length - 1 && table.options.lastColumnSwitchable;
                   return (
                     <th
                       key={header.id}
@@ -177,10 +164,7 @@ export function MyTable() {
                         isLast ? 'cursor-pointer' : ''
                       }`}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                      {flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   );
                 })}
@@ -188,24 +172,21 @@ export function MyTable() {
           ))}
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {table.getRowModel().rows.map(row => (
+          {table.getRowModel().rows.map((row) => (
             <tr key={row.id}>
               {row.getVisibleCells()
-                .filter(cell => visibleColumns.includes(cell.column.id))
+                .filter((cell) => visibleColumns.includes(cell.column.id))
                 .sort(
                   (a, b) =>
                     visibleColumns.indexOf(a.column.id) -
                     visibleColumns.indexOf(b.column.id)
                 )
-                .map(cell => (
+                .map((cell) => (
                   <td
                     key={cell.id}
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 transition-all duration-300"
                   >
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
             </tr>

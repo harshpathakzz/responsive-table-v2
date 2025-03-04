@@ -30,6 +30,7 @@ export interface ResponsiveColumnsInstance {
   getContainerWidth: () => number;
   initResizeObserver: (element: HTMLElement) => () => void;
   toggleLastColumn?: () => void;
+  getDefaultVisibleColumns: (width: number) => string[];
 }
 
 declare module '@tanstack/react-table' {
@@ -37,6 +38,17 @@ declare module '@tanstack/react-table' {
   interface TableOptionsResolved<TData extends RowData> extends ResponsiveColumnsOptions {}
   interface Table<TData extends RowData> extends ResponsiveColumnsInstance {}
 }
+
+// Exposed standalone function used internally.
+export const getDefaultVisibleColumnsStandalone = (
+  width: number,
+  config: ResponsiveConfig
+): string[] => {
+  const matchingBreakpoint = [...config.breakpoints]
+    .sort((a, b) => b.minWidth - a.minWidth)
+    .find((bp) => width >= bp.minWidth);
+  return matchingBreakpoint?.columns || config.defaultColumns || [];
+};
 
 export const ResponsiveColumnsFeature: TableFeature = {
   getInitialState: (state): ResponsiveColumnsState => ({
@@ -63,12 +75,7 @@ export const ResponsiveColumnsFeature: TableFeature = {
     const calculateVisibleColumns = (width: number): string[] => {
       const config = table.options.responsiveConfig;
       if (!config) return [];
-
-      const matchingBreakpoint = [...config.breakpoints]
-        .sort((a, b) => b.minWidth - a.minWidth)
-        .find((bp) => width >= bp.minWidth);
-
-      return matchingBreakpoint?.columns || config.defaultColumns || [];
+      return getDefaultVisibleColumnsStandalone(width, config);
     };
 
     table.setContainerWidth = (width) => {
@@ -98,18 +105,20 @@ export const ResponsiveColumnsFeature: TableFeature = {
       if (!table.options.lastColumnSwitchable) return;
 
       const width = table.getState().containerWidth;
-      const defaultVisible = calculateVisibleColumns(width);
+      const config = table.options.responsiveConfig;
+      if (!config) return;
+      const defaultVisible = getDefaultVisibleColumnsStandalone(width, config);
       const allColumns = table.options.columns as { id: string }[];
 
-      // Build a list of candidate columns not in the default visible set
+      // Build a list of candidate columns not in the default visible set.
       const candidateList = allColumns
-        .map(col => col.id)
-        .filter(id => !defaultVisible.includes(id));
+        .map((col) => col.id)
+        .filter((id) => !defaultVisible.includes(id));
 
       const currentSwap = table.getState().swappedLastColumn;
 
       if (currentSwap) {
-        // Find the current candidate's index and try to select the next one
+        // Try to select the next candidate.
         const currentIndex = candidateList.indexOf(currentSwap);
         let nextCandidate: string | null = null;
         if (currentIndex >= 0 && currentIndex < candidateList.length - 1) {
@@ -125,7 +134,7 @@ export const ResponsiveColumnsFeature: TableFeature = {
           }));
           table.options.onVisibleColumnsChange?.(newVisible);
         } else {
-          // No more candidates; revert to default
+          // Revert to default.
           table.setState((old) => ({
             ...old,
             swappedLastColumn: null,
@@ -134,7 +143,7 @@ export const ResponsiveColumnsFeature: TableFeature = {
           table.options.onVisibleColumnsChange?.(defaultVisible);
         }
       } else {
-        // No swap active, so pick the first candidate if available.
+        // No swap active: pick the first candidate if available.
         if (candidateList.length > 0) {
           const newVisible = [...defaultVisible];
           newVisible[newVisible.length - 1] = candidateList[0];
@@ -149,7 +158,7 @@ export const ResponsiveColumnsFeature: TableFeature = {
     };
 
     table.getVisibleColumns = () => table.getState().visibleColumns;
-    
+
     table.getResponsiveConfig = () => table.options.responsiveConfig;
 
     table.getContainerWidth = () => table.getState().containerWidth;
@@ -167,6 +176,13 @@ export const ResponsiveColumnsFeature: TableFeature = {
 
       resizeObserver.observe(element);
       return () => resizeObserver.disconnect();
+    };
+
+    // Expose getDefaultVisibleColumns as a method on the table instance.
+    table.getDefaultVisibleColumns = (width: number): string[] => {
+      const config = table.options.responsiveConfig;
+      if (!config) return [];
+      return getDefaultVisibleColumnsStandalone(width, config);
     };
   },
 };
