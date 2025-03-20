@@ -5,10 +5,8 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 
-// Fixed width for pinned columns (adjust as needed)
 const PINNED_COL_WIDTH = 150;
 
-// Sample data for the table
 const defaultData = [
   {
     firstName: 'Alice',
@@ -49,7 +47,6 @@ const defaultData = [
   // ... add more rows as needed
 ];
 
-// Define your columns with unique accessor keys
 const defaultColumns = [
   { header: 'First Name', accessorKey: 'firstName' },
   { header: 'Last Name', accessorKey: 'lastName' },
@@ -67,8 +64,6 @@ function Table() {
   const [data] = React.useState(() => [...defaultData]);
   const [columns] = React.useState(() => [...defaultColumns]);
 
-  // Set up the table instance with column pinning state.
-  // Here, we pin 'firstName', 'lastName', and 'email' to the left and 'city' to the right.
   const table = useReactTable({
     data,
     columns,
@@ -79,11 +74,10 @@ function Table() {
   });
 
   return (
-    <div className="max-h-96 overflow-auto border border-gray-300">
-      <table className="min-w-full border-collapse">
+<div className="h-[200px] overflow-y-auto border border-gray-300 relative">
+<table className="min-w-full border-collapse">
         <thead>
           {table.getHeaderGroups().map(headerGroup => {
-            // Create arrays of left and right pinned headers for offset calculations
             const leftPinnedHeaders = headerGroup.headers.filter(
               (header) => header.column.getIsPinned() === 'left'
             );
@@ -92,7 +86,7 @@ function Table() {
             );
 
             return (
-              <tr key={headerGroup.id} className="sticky top-0 z-10 bg-white">
+              <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => {
                   const pinPosition = header.column.getIsPinned();
                   let pinStyle = {};
@@ -127,7 +121,7 @@ function Table() {
                     <th
                       key={header.id}
                       style={pinStyle}
-                      className="p-2 border border-gray-300 text-left"
+                      className="p-2 border border-gray-300 text-left sticky top-0 bg-white"
                     >
                       {header.isPlaceholder
                         ? null
@@ -141,7 +135,6 @@ function Table() {
         </thead>
         <tbody>
           {table.getRowModel().rows.map(row => {
-            // For each row, get left/right pinned cells for offset calculations.
             const leftPinnedCells = row.getVisibleCells().filter(
               (cell) => cell.column.getIsPinned() === 'left'
             );
