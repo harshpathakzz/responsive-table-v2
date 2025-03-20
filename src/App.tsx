@@ -7,8 +7,7 @@ import ResStyle from './components/ResStyle';
 import FeatCol from './components/FeatCol';
 import RowExpansion from './components/RowExpansion';
 import DndRow from './components/DndRow';
-import NewAPI from './components/NewAPI';
-
+import ColPin from './components/ColPin';
 type Person = {
   id: string;
   firstName: string;
@@ -185,6 +184,27 @@ function App() {
                       <DndRow />
                       <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-gray-200 hover:bg-gray-300" />
                     </div>
+                    
+
+                  </div>
+                  <h1 className="text-2xl font-bold mb-4">Column Pining</h1>
+                  <div className="p-4">
+                    <div 
+                      className="relative overflow-hidden border border-gray-200 rounded-lg"
+                      style={{
+                        resize: 'both',
+                        overflow: 'auto',
+                        minHeight: '200px',
+                        minWidth: '300px',
+                        maxHeight: '800px',
+                        maxWidth: '100%',
+                        backgroundColor: 'white',
+                      }}
+                    >
+                      <ColPin />
+                      <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-gray-200 hover:bg-gray-300" />
+                    </div>
+                    
 
                   </div>
                  
