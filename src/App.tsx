@@ -8,6 +8,7 @@ import FeatCol from './components/FeatCol';
 import RowExpansion from './components/RowExpansion';
 import DndRow from './components/DndRow';
 import ColPin from './components/ColPin';
+import StickyHeaderTable from './components/StickHeaderTable';
 type Person = {
   id: string;
   firstName: string;
@@ -204,8 +205,8 @@ function App() {
                       <ColPin />
                       <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-gray-200 hover:bg-gray-300" />
                     </div>
-
-
+                    <h1 className="text-2xl font-bold mb-4">Sticky Header</h1>
+<StickyHeaderTable />
                   </div>
                  
       </div>
